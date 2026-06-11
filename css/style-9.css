@@ -993,3 +993,44 @@ textarea.input {
 #addToBottomHalf {
   grid-row: 2;
 }
+
+/* ============================================================
+   Phase 1 Layout Refactor
+   To revert: remove this entire block and the creator-topbar
+   HTML above .creator-grid in creator/index.html
+   ============================================================ */
+
+/* Top action bar */
+.creator-topbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	padding: 0.75rem 1rem;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+/* .input has width:100% globally; constrain to content width inside topbar */
+.creator-topbar .input {
+	width: auto;
+}
+.creator-topbar-label {
+	color: var(--font-color-2);
+	font-style: italic;
+	font-size: 1.25rem;
+	font-family: Montserrat-Medium, Helvetica, Tahoma, Verdana, Geneva, sans-serif;
+	white-space: nowrap;
+	margin-right: 0.25rem;
+}
+
+/* Desktop only: sticky canvas.
+   Only applied at the same breakpoint as the two-column grid layout.
+   Independent menu scroll was removed in Phase 1.1 — overflow-y:auto on
+   .creator-menu clips the absolutely-positioned frame-search autocomplete
+   dropdown. Independent scroll is deferred to Phase 2. */
+@media only screen and (min-width: 1250px) {
+	.creator-canvas {
+		position: sticky;
+		top: 1rem;
+		align-self: start;
+	}
+}

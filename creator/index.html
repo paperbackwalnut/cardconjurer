@@ -92,6 +92,13 @@
 				<input id='textbox-editor-height' class='input' type='number' placeholder='X' step='1'>
 			</div>
 		</div>
+		<!-- Phase 1: Top action bar (additive — original buttons remain in their tabs) -->
+		<div class='creator-topbar readable-background'>
+			<span class='creator-topbar-label'>Quick actions:</span>
+			<button class='input' onclick='saveCard();'>Save Card</button>
+			<button class='input' onclick='downloadCard();'>Download PNG</button>
+			<button class='input' onclick='downloadCard(false, true);'>Download JPEG</button>
+		</div>
 		<!-- Regular stuff -->
 		<div class='creator-grid margin-bottom-large'>
 			<canvas class='creator-canvas box-shadow' id='previewCanvas' width='1005' height='1407'></canvas>
