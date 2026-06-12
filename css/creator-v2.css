@@ -1,17 +1,18 @@
-/* ================================================================
-   creator-v2.css — Phase A / A.1: Three-column editor shell
-   All new classes prefixed cc- to avoid collisions with style-9.css
-   Independent column scroll is deferred to Phase B (autocomplete
-   clipping issue — see docs/claude-layout-refactor/09-migration-plan.md)
-   ================================================================ */
+/* =================================================================
+   creator-v2.css — Phase A / A.2: Three-column editor shell
+   All classes prefixed cc- to avoid collisions with style-9.css
+   Independent column scroll deferred to Phase B (autocomplete issue)
+   ================================================================= */
 
 /* ----------------------------------------------------------------
-   App shell
+   App shell — dark base suppresses the bright lowpoly background.
+   Scoped to .cc-app so the old /creator/ page is completely unaffected.
    ---------------------------------------------------------------- */
 .cc-app {
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
+	background: rgba(16, 16, 22, 0.93); /* near-opaque dark over lowpoly */
 }
 
 /* ----------------------------------------------------------------
@@ -26,11 +27,13 @@
 	flex-wrap: wrap;
 	gap: 0.4rem;
 	padding: 0.4rem 0.75rem;
+	min-height: 2.8rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cc-topbar-brand {
 	font-family: belerenbsc, Helvetica, sans-serif;
-	font-size: 1.4rem;
+	font-size: 1.5rem;
 	text-decoration: none;
 	color: inherit;
 	white-space: nowrap;
@@ -39,16 +42,16 @@
 
 .cc-topbar-sep {
 	width: 1px;
-	height: 1.4rem;
-	background: rgba(255, 255, 255, 0.2);
+	height: 1.5rem;
+	background: rgba(255, 255, 255, 0.18);
 	flex-shrink: 0;
-	margin: 0 0.15rem;
+	margin: 0 0.2rem;
 }
 
 /* Override .input's width:100% and font-size inside the topbar */
 .cc-topbar .input {
 	width: auto;
-	padding: 0.2rem 0.6rem;
+	padding: 0.25rem 0.75rem;
 	font-size: 1rem;
 }
 
@@ -79,8 +82,8 @@
 }
 
 /* Desktop: three columns.
-   Canvas takes 1fr (flexible — gets extra space on wide screens).
-   Panel is capped at 480px so it stays a compact properties inspector. */
+   Canvas takes 1fr so it gets extra space at ultrawide.
+   Panel capped at 480px — stays a compact properties inspector. */
 @media (min-width: 1200px) {
 	.cc-main {
 		grid-template-columns: 220px 1fr minmax(280px, 480px);
@@ -110,7 +113,7 @@
 	margin-bottom: 0.4rem;
 }
 
-/* Layer list: scrollable at modest height now rows are compact */
+/* Layer list: scrollable, height-capped so sidebar doesn't overflow */
 .cc-sidebar-layers .frame-list {
 	max-height: 320px;
 	overflow-y: auto;
@@ -118,8 +121,8 @@
 
 /* ---- Compact layer rows ----------------------------------------
    .frame-element is built by addFrame() in creator-23.js.
-   DOM structure: div.draggable.frame-element > img, img, h4, h4.frame-element-close
-   We override sizing only — drag/reorder/click behavior is unchanged.
+   DOM: div.draggable.frame-element > img, img, h4, h4.frame-element-close
+   Sizing overrides only — drag/reorder/click behavior is untouched.
    ---------------------------------------------------------------- */
 .cc-sidebar-layers .frame-element {
 	grid-template-columns: 2rem 2rem 1fr 2rem;
@@ -187,79 +190,112 @@
 }
 
 /* ----------------------------------------------------------------
-   Center canvas area
+   Center canvas area — deliberate dark workspace surface
    ---------------------------------------------------------------- */
 .cc-canvas-area {
 	grid-area: canvas;
 	display: flex;
 	justify-content: center;
 	align-items: flex-start;
-	padding: 1rem;
+	padding: 1.5rem 1rem;
+	background: rgba(10, 10, 16, 0.97); /* distinct workspace surface */
+	min-height: 12rem;
+}
+
+/* Canvas height constraint: prevents the card from overflowing the
+   viewport vertically. Uses aspect-ratio + max-height + width:auto —
+   for a replaced element this triggers proportional scaling (same as
+   img { max-height: X; width: auto }). CSS display size only;
+   export resolution is not affected (drawCard() uses off-screen canvas).
+   Applied at tablet+ only; narrow screens use natural full-width. */
+@media (min-width: 700px) {
+	.cc-canvas-area .creator-canvas {
+		width: auto;
+		height: auto;
+		max-width: 100%;                    /* don't overflow canvas column */
+		max-height: calc(100vh - 5rem);     /* viewport minus topbar + padding */
+		aspect-ratio: 1005 / 1407;          /* card aspect ratio — ensures proportional scaling */
+	}
 }
 
 /* Sticky canvas on desktop three-column layout only */
 @media (min-width: 1200px) {
 	.cc-canvas-area .creator-canvas {
 		position: sticky;
-		top: 3rem; /* approximate topbar height */
+		top: 3.5rem; /* clears topbar (≈2.8rem) with a small gap */
 		align-self: start;
 	}
 }
 
 /* ----------------------------------------------------------------
-   Right panel — compact properties inspector
+   Right panel — compact properties inspector.
+   No overflow-y on .cc-panel or its section containers:
+   the autocomplete (.autocomplete-items, position:absolute) inside
+   the Frame section clips if any ancestor has overflow set.
+   Deferred to Phase B. Picker elements have their own contained scroll.
    ---------------------------------------------------------------- */
 .cc-panel {
 	grid-area: panel;
 	padding: 0.5rem;
-	/* No overflow-y:auto here in Phase A — deferred to Phase B.
-	   Autocomplete dropdown (position:absolute) clips inside an
-	   overflow container. */
 }
 
-/* ---- Scoped input overrides -----------------------------------
-   style-9.css sets .input at font-size:1.25rem and .input-grid
-   at minmax(16rem, 1fr) — fine for the full-page old creator but
-   too large and too wide for a compact properties panel.
-   These overrides are scoped to .cc-panel to avoid any impact on
-   the old /creator/ page, the topbar, or the sidebar.
+/* ---- Scoped input overrides ------------------------------------
+   All scoped to .cc-panel — zero impact on old /creator/ page.
    ---------------------------------------------------------------- */
 
-/* Inputs: tighter font and padding */
 .cc-panel .input {
 	font-size: 1rem;
 }
 
-/* Textarea: a bit shorter than the global default */
 .cc-panel textarea.input {
 	font-size: 1rem;
 	min-height: 5rem;
 }
 
-/* Input grids: 8rem minimum column so 3 columns fit in ~440px of panel */
+/* 8rem min-column → 3 columns fit in ~450px panel */
 .cc-panel .input-grid {
 	grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
 }
 
-/* Headings inside the panel */
-.cc-panel h3 {
-	font-size: 1.3rem;
-}
-.cc-panel h4 {
-	font-size: 1.1rem;
-}
-.cc-panel h5 {
-	font-size: 0.95rem;
+.cc-panel h3 { font-size: 1.3rem; }
+.cc-panel h4 { font-size: 1.1rem; }
+.cc-panel h5 { font-size: 0.95rem; }
+
+/* ---- Frame / mask picker --------------------------------------
+   Stack frame-picker above mask-picker (1 col instead of side-by-side
+   split-grid). Full panel width = 4–5 frame thumbnails per row instead
+   of 2. The pickers' own overflow-y:scroll is safe here — they don't
+   contain any autocomplete dropdown.
+   ---------------------------------------------------------------- */
+.cc-panel .split-grid {
+	grid-template-columns: 1fr;  /* vertical stack, not 50/50 */
 }
 
-/* Frame/mask picker: replace fixed 20rem height with a max-height.
-   Eliminates the empty dark void before frames load.
-   style-9.css still supplies overflow-y:scroll and grid layout. */
-.cc-panel .frame-picker,
-.cc-panel .mask-picker {
+.cc-panel .frame-picker {
+	grid-template-columns: repeat(auto-fit, minmax(5rem, 1fr));
+	grid-auto-rows: 5rem;
 	height: auto;
 	min-height: 4rem;
-	max-height: 14rem;
+	max-height: 12rem;
+}
+
+.cc-panel .frame-option {
+	height: 5rem;
+}
+
+.cc-panel .mask-picker {
+	height: auto;
+	min-height: 3rem;
+	max-height: 9rem;
+}
+
+.cc-panel .mask-option {
+	height: 4rem;
+	grid-template-columns: 3.5rem auto;
+}
+
+.cc-panel .mask-option > img {
+	max-height: 4rem;
 }
 
 /* ----------------------------------------------------------------
@@ -270,7 +306,7 @@
 }
 
 /* ----------------------------------------------------------------
-   Responsive: collapse topbar on very narrow screens
+   Responsive: narrow screens
    ---------------------------------------------------------------- */
 @media (max-width: 480px) {
 	.cc-topbar-brand {
