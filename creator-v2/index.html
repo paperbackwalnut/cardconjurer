@@ -160,6 +160,7 @@
 				<div class="cc-nav-item"               data-section="setSymbol" onclick="ccActivateSection('setSymbol')">Set Symbol</div>
 				<div class="cc-nav-item"               data-section="watermark" onclick="ccActivateSection('watermark')">Watermark</div>
 				<div class="cc-nav-item"               data-section="collector" onclick="ccActivateSection('collector')">Collector Info</div>
+				<div class="cc-nav-item"               data-section="version-controls" onclick="ccActivateSection('version-controls')">Special Frame Controls</div>
 				<div class="cc-sidebar-nav-heading">Options</div>
 				<div class="cc-nav-item"               data-section="autoframe" onclick="ccActivateSection('autoframe')">Auto Frame</div>
 				<div class="cc-nav-item"               data-section="import"    onclick="ccActivateSection('import')">Save / Load / Import</div>
@@ -771,6 +772,34 @@
 				</div>
 
 			</div><!-- /collector section -->
+
+			<!-- ================================================
+			     SPECIAL FRAME CONTROLS SECTION
+			     Receives UI injected by version scripts:
+			       versionPlaneswalker, versionSaga, versionClass,
+			       versionDungeon, versionStation,
+			       versionMysticalArchiveJP/Horizontal,
+			       versionNeoBasics, versionQRCode
+			     toggleCreatorTabs() and selectSelectable() in
+			     creator-23.js operate only within these two
+			     containers, isolated from .cc-panel-section elements.
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="version-controls">
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="padding input-description">Special Frame Controls</h5>
+					<p class="cc-version-hint padding">Controls appear here after loading a special frame version — Planeswalker, Saga, Class, Dungeon, Station, Mystical Archive JP, Kamigawa Basics, or QR Code. Select the frame pack and click <strong>Load Frame Version</strong> first.</p>
+				</div>
+
+				<!-- Version scripts append tab buttons here via innerHTML +=
+				     Each button calls toggleCreatorTabs(event, target) -->
+				<div id="creator-menu-tabs" class="creator-menu-tabs margin-bottom"></div>
+
+				<!-- Version scripts append control panels here via appendChild().
+				     Panels start hidden; toggleCreatorTabs() shows the active one. -->
+				<div id="creator-menu-sections"></div>
+
+			</div><!-- /version-controls section -->
 
 			<!-- ================================================
 			     AUTO FRAME SECTION

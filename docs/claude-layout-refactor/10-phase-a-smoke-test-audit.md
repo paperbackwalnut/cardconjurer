@@ -16,7 +16,7 @@ Date: 2026-06-12
 | Frame image / mask picker | ✅ Pass | #frame-picker, #mask-picker present; max-height scoped to pickers |
 | Add Frame to Card | ✅ Pass | #frame-list present in sidebar; addFrame() path safe |
 | Frame layer select / edit / reorder | ✅ Pass | .draggable / .dragOver DOM events unaffected by CSS |
-| Frame element editor modal | ⚠️ Risk | z-index:10 < topbar z-index:20; top edge of modal may clip behind topbar (2-5px) |
+| Frame element editor modal | ✅ Fixed | z-index raised to 25 in creator-v2.css, above cc-topbar (20) |
 | Text section | ✅ Pass | All text IDs present; textEdited(), fontSizedEdited(), textOptionClicked() safe |
 | Art section | ✅ Pass | All art IDs present; artEdited(), uploadArt() path safe |
 | Set Symbol section | ✅ Pass | All setSymbol IDs present |
@@ -27,21 +27,31 @@ Date: 2026-06-12
 | Download PNG / JPEG | ✅ Pass | downloadCard() called directly; uses off-screen cardCanvas |
 | Drag-and-drop file uploads | ✅ Pass | .drop-area elements present; main-1.js children[1] assumption holds |
 | Ctrl+I keyboard shortcut | ✅ Pass | #text-editor present; main-1.js onkeyup handler works |
-| **Planeswalker frames** | ❌ Fail | versionPlaneswalker.js throws TypeError (see §Blockers) |
-| **Saga frames** | ❌ Fail | versionSaga.js throws TypeError |
-| **Class card frames** | ❌ Fail | versionClass.js throws TypeError |
-| **Dungeon card frames** | ❌ Fail | versionDungeon.js throws TypeError |
-| **Station frames** | ❌ Fail | versionStation.js throws TypeError |
-| **Mystical Archive JP frames** | ❌ Fail | versionMysticalArchiveJP.js throws TypeError |
-| **Mystical Archive JP (H)** | ❌ Fail | versionMysticalArchiveJPHorizontal.js throws TypeError |
-| **Kamigawa Basics (Neo)** | ❌ Fail | versionNeoBasics.js throws TypeError |
-| **QR Code frames** | ❌ Fail | versionQRCode.js throws TypeError |
+| **Planeswalker frames** | ✅ Fixed | Option C: version controls appear in Special Frame Controls section |
+| **Saga frames** | ✅ Fixed | Same |
+| **Class card frames** | ✅ Fixed | Same |
+| **Dungeon card frames** | ✅ Fixed | Same |
+| **Station frames** | ✅ Fixed | Same |
+| **Mystical Archive JP frames** | ✅ Fixed | Same |
+| **Mystical Archive JP (H)** | ✅ Fixed | Same |
+| **Kamigawa Basics (Neo)** | ✅ Fixed | Same |
+| **QR Code frames** | ✅ Fixed | Same |
 | Duplicate IDs | ✅ Pass | Zero duplicate IDs found |
 | doCreate event (main-1.js) | ✅ Pass | Dispatched but no handler in creator-v2; harmless |
 
 ---
 
-## Known Blocker: Version Scripts Inject Into `#creator-menu-tabs` / `#creator-menu-sections`
+## Resolution (2026-06-12): Option C Implemented
+
+Both issues from the audit have been fixed. See commit history.
+
+**Version script compatibility** — Option C: a visible "Special Frame Controls" panel section was added to `creator-v2/index.html`. It contains `#creator-menu-tabs` and `#creator-menu-sections` as live, visible, appendable containers. Version scripts inject into them as before; `toggleCreatorTabs()` and `selectSelectable()` in `creator-23.js` operate within these containers unchanged. The sidebar nav item "Special Frame Controls" navigates to this section. Controls are visible and usable. No hidden stubs used.
+
+**Modal z-index** — `z-index: 25` added for `.frame-element-editor` and `.textbox-editor` in `creator-v2.css`, raising them above `.cc-topbar` (z-index: 20).
+
+---
+
+## Known Blocker (RESOLVED): Version Scripts Inject Into `#creator-menu-tabs` / `#creator-menu-sections`
 
 ### What fails
 
