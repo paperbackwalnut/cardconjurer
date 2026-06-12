@@ -63,7 +63,7 @@
 	display: grid;
 	align-items: start;   /* required: lets sticky canvas work */
 
-	/* Default (narrow): single column, vertical stack */
+	/* Default (narrow < 700px): single column, canvas first */
 	grid-template-columns: 1fr;
 	grid-template-areas:
 		'canvas'
@@ -71,23 +71,32 @@
 		'panel';
 }
 
-/* Medium: sidebar left, canvas + panel stacked on right */
+/* 700–899px: sidebar + right column (canvas stacked above panel).
+   Canvas height is capped below so the panel stays reachable without
+   excessive scrolling. */
 @media (min-width: 700px) {
 	.cc-main {
-		grid-template-columns: 200px 1fr;
+		grid-template-columns: 190px 1fr;
 		grid-template-areas:
 			'sidebar canvas'
 			'sidebar panel';
 	}
 }
 
-/* Desktop: three columns.
-   Canvas takes 1fr so it gets extra space at ultrawide.
-   Panel capped at 480px — stays a compact properties inspector. */
+/* 900px+: three columns — panel is always beside the canvas, never stacked.
+   Panel is 320px fixed so it is never pushed off-screen or narrowed to nothing.
+   Canvas takes the remaining flexible space. */
+@media (min-width: 900px) {
+	.cc-main {
+		grid-template-columns: 190px 1fr 320px;
+		grid-template-areas: 'sidebar canvas panel';
+	}
+}
+
+/* 1200px+: wider panel and sidebar at comfortable sizes. */
 @media (min-width: 1200px) {
 	.cc-main {
-		grid-template-columns: 220px 1fr minmax(280px, 480px);
-		grid-template-areas: 'sidebar canvas panel';
+		grid-template-columns: 220px 1fr 400px;
 	}
 }
 
@@ -190,7 +199,10 @@
 }
 
 /* ----------------------------------------------------------------
-   Center canvas area — deliberate dark workspace surface
+   Center canvas area — dark slate workspace surface.
+   Not near-black: use a distinguishable charcoal so card borders
+   (including dark ones) have visible contrast. CSS display only —
+   does not affect rendered/exported card output.
    ---------------------------------------------------------------- */
 .cc-canvas-area {
 	grid-area: canvas;
@@ -198,31 +210,51 @@
 	justify-content: center;
 	align-items: flex-start;
 	padding: 1.5rem 1rem;
-	background: rgba(10, 10, 16, 0.97); /* distinct workspace surface */
+	background: #252a35; /* dark slate — card edge visible against this */
 	min-height: 12rem;
 }
 
-/* Canvas height constraint: prevents the card from overflowing the
-   viewport vertically. Uses aspect-ratio + max-height + width:auto —
-   for a replaced element this triggers proportional scaling (same as
-   img { max-height: X; width: auto }). CSS display size only;
-   export resolution is not affected (drawCard() uses off-screen canvas).
-   Applied at tablet+ only; narrow screens use natural full-width. */
-@media (min-width: 700px) {
+/* Canvas shadow: stronger than the global .box-shadow class so the card
+   has a visible lift from the workspace. Outline ring defines the edge.
+   Specificity (0,2,0) > .box-shadow (0,1,0) — cleanly overrides. */
+.cc-canvas-area .creator-canvas {
+	box-shadow:
+		0 6px 28px rgba(0, 0, 0, 0.55),
+		0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+
+/* ---- Canvas height and sizing constraints ----------------------
+   CSS display size only — export uses off-screen cardCanvas, unaffected.
+   ---------------------------------------------------------------- */
+
+/* 700–899px stacked layout: cap canvas so the panel remains reachable
+   below it without scrolling past the entire viewport. */
+@media (min-width: 700px) and (max-width: 899px) {
 	.cc-canvas-area .creator-canvas {
 		width: auto;
 		height: auto;
-		max-width: 100%;                    /* don't overflow canvas column */
-		max-height: calc(100vh - 5rem);     /* viewport minus topbar + padding */
-		aspect-ratio: 1005 / 1407;          /* card aspect ratio — ensures proportional scaling */
+		max-width: 100%;
+		max-height: 50vh;
+		aspect-ratio: 1005 / 1407;
 	}
 }
 
-/* Sticky canvas on desktop three-column layout only */
+/* 900px+ three-column: panel is beside the canvas so full height is safe. */
+@media (min-width: 900px) {
+	.cc-canvas-area .creator-canvas {
+		width: auto;
+		height: auto;
+		max-width: 100%;
+		max-height: calc(100vh - 4rem);
+		aspect-ratio: 1005 / 1407;
+	}
+}
+
+/* Sticky canvas on desktop only (panel is always beside it). */
 @media (min-width: 1200px) {
 	.cc-canvas-area .creator-canvas {
 		position: sticky;
-		top: 3.5rem; /* clears topbar (≈2.8rem) with a small gap */
+		top: 3.5rem;
 		align-self: start;
 	}
 }
@@ -335,13 +367,27 @@
 }
 
 /* ----------------------------------------------------------------
-   Responsive: narrow screens
+   Responsive adjustments
    ---------------------------------------------------------------- */
+
+/* Very narrow: shrink topbar brand */
 @media (max-width: 480px) {
 	.cc-topbar-brand {
 		font-size: 1.1rem;
 	}
 	.cc-topbar-sep {
 		display: none;
+	}
+}
+
+/* 900–1199px: sidebar text slightly smaller to fit 190px column cleanly.
+   Panel input-grid tighter (7rem min) so 2 columns fit in 320px panel. */
+@media (min-width: 900px) and (max-width: 1199px) {
+	.cc-nav-item {
+		font-size: 0.9rem;
+		padding: 0.45rem 0.6rem;
+	}
+	.cc-panel .input-grid {
+		grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
 	}
 }
