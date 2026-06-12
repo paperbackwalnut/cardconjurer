@@ -63,6 +63,25 @@ At every phase, the original `creator/index.html` remains fully functional and u
 ### Rollback plan
 Delete `creator-v2/`. Zero impact on anything else.
 
+### Phase A implementation notes (2026-06-12)
+
+**Files created:**
+- `creator-v2/index.html` — full standalone HTML page (not HTMX fragment)
+- `css/creator-v2.css` — cc-* layout classes, three-column grid, sticky canvas at ≥1200px
+- `js/creator-v2.js` — `ccActivateSection(name)`, ~20 lines
+
+**All 63 required IDs confirmed present** via automated check (zero missing).
+
+**`#frame-list` moved to sidebar** — `addFrame()` and `loadCard()` still write to it by ID; DOM position doesn't matter to the engine.
+
+**`#show-guidelines-2`** included in Art section (bound to `#show-guidelines` in Frame section by `creator-23.js`'s `bindInputs()`).
+
+**Independent panel scroll deferred** — `.cc-panel` has no `overflow-y: auto` in Phase A. Autocomplete clipping issue prevents it (same as Phase 1.1 finding). Deferred to Phase B.
+
+**Standalone page** — served at `/creator-v2/` directly, not via HTMX. Eliminates `main-1.js` `.drop-area` wiring issue.
+
+**`creator-23.js`, `creator/index.html`, `css/style-9.css`** — confirmed zero changes (git diff empty).
+
 ### Risk: 🟢 LOW
 The only risk is that an input ID is missed or a required DOM element is absent at script-load time. This produces a console error and broken functionality for that specific feature — easily caught by the test checklist. The original creator is unaffected.
 

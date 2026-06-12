@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Card Conjurer — Creator V2</title>
+	<link rel="stylesheet" href="/css/reset.css">
+	<link rel="stylesheet" href="/css/style-9.css">
+	<link rel="stylesheet" href="/css/creator-v2.css">
+	<link rel="shortcut icon" href="/core/favicon.ico">
+	<link rel="preload" href="/fonts/beleren-b.ttf"    as="font" type="font/ttf" crossorigin="anonymous">
+	<link rel="preload" href="/fonts/beleren-bsc.ttf"  as="font" type="font/ttf" crossorigin="anonymous">
+	<link rel="preload" href="/fonts/gotham-medium.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+	<link rel="preload" href="/fonts/goudy-medieval.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+	<link rel="preload" href="/fonts/matrix.ttf"       as="font" type="font/ttf" crossorigin="anonymous">
+	<link rel="preload" href="/fonts/matrix-b.ttf"     as="font" type="font/ttf" crossorigin="anonymous">
+	<link rel="preload" href="/fonts/mplantin.ttf"     as="font" type="font/ttf" crossorigin="anonymous">
+	<link rel="preload" href="/fonts/mplantin-i.ttf"   as="font" type="font/ttf" crossorigin="anonymous">
+	<!-- themes.js must run synchronously so CSS variables are set before paint -->
+	<script src="/js/themes.js"></script>
+</head>
+<body>
+
+<!-- Site background (themed) -->
+<div class="background"></div>
+
+<!-- Toast notifications (used by notify() in main-1.js) -->
+<div class="notification-container"></div>
+
+<!-- ============================================================
+     MODAL POPUPS
+     position:fixed — DOM location doesn't affect their position.
+     Must exist before creator-23.js deferred script evaluates.
+     ============================================================ -->
+
+<div id="frame-element-editor" class="frame-element-editor">
+	<h2 class="frame-element-editor-title">Frame Image Editor</h2>
+	<h2 class="frame-element-editor-close" onclick='this.parentElement.classList.remove("opened");'>X</h2>
+	<div>
+		<h5 class="input-description">X</h5>
+		<input id="frame-editor-x" class="input" type="number" placeholder="X" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Y</h5>
+		<input id="frame-editor-y" class="input" type="number" placeholder="Y" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Width</h5>
+		<input id="frame-editor-width" class="input" type="number" placeholder="Width" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Height</h5>
+		<input id="frame-editor-height" class="input" type="number" placeholder="Height" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Opacity</h5>
+		<input id="frame-editor-opacity" class="input" type="number" placeholder="Opacity" max="100" min="0" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Erase</h5>
+		<label class="checkbox-container input">Erase Card
+			<input id="frame-editor-erase" type="checkbox">
+			<span class="checkmark"></span>
+		</label>
+	</div>
+	<div>
+		<h5 class="input-description">Blending Mode</h5>
+		<label class="checkbox-container input">Preserve Alpha
+			<input id="frame-editor-alpha" type="checkbox">
+			<span class="checkmark"></span>
+		</label>
+	</div>
+	<div>
+		<label class="checkbox-container input">Color Overlay
+			<input id="frame-editor-color-overlay-check" type="checkbox">
+			<span class="checkmark"></span>
+		</label>
+		<input id="frame-editor-color-overlay" class="input" type="color" value="#000000">
+	</div>
+	<div>
+		<h5 class="input-description">HSL Adjustments</h5>
+		<input id="frame-editor-hsl-hue-slider"        class="input" type="range"  min="-180" max="180" value="0" step="1" aria-label="HSL Hue Slider">
+		<input id="frame-editor-hsl-hue"               class="input" type="number" min="-180" max="180" value="0" step="1" aria-label="HSL Hue Value">
+		<input id="frame-editor-hsl-saturation-slider" class="input" type="range"  min="-100" max="100" value="0" step="1" aria-label="HSL Saturation Slider">
+		<input id="frame-editor-hsl-saturation"        class="input" type="number" min="-100" max="100" value="0" step="1" aria-label="HSL Saturation Value">
+		<input id="frame-editor-hsl-lightness-slider"  class="input" type="range"  min="-100" max="100" value="0" step="1" aria-label="HSL Lightness Slider">
+		<input id="frame-editor-hsl-lightness"         class="input" type="number" min="-100" max="100" value="0" step="1" aria-label="HSL Lightness Value">
+	</div>
+	<div>
+		<h5 class="input-description">Select and remove masks</h5>
+		<select id="frame-editor-masks" class="input margin-bottom" aria-label="Frame editor masks"></select>
+		<button onclick="frameElementMaskRemoved();" class="input">Remove mask</button>
+	</div>
+	<div class="drop-area">
+		<h5 class="margin-bottom padding input-description">Drag and drop masks to add</h5>
+		<input type="file" multiple accept=".png, .svg, .jpg, .jpeg, .bmp, .webp" class="input"
+			oninput="uploadFiles(event.target.files, uploadMaskOption);"
+			data-dropFunction="uploadMaskOption" data-otherParams="">
+	</div>
+</div>
+
+<div id="textbox-editor" class="textbox-editor">
+	<h2 class="textbox-editor-title">Textbox Editor</h2>
+	<h2 class="textbox-editor-close" onclick='this.parentElement.classList.remove("opened");'>X</h2>
+	<div>
+		<h5 class="input-description">X</h5>
+		<input id="textbox-editor-x" class="input" type="number" placeholder="X" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Y</h5>
+		<input id="textbox-editor-y" class="input" type="number" placeholder="Y" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Width</h5>
+		<input id="textbox-editor-width" class="input" type="number" placeholder="Width" step="1">
+	</div>
+	<div>
+		<h5 class="input-description">Height</h5>
+		<input id="textbox-editor-height" class="input" type="number" placeholder="Height" step="1">
+	</div>
+</div>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div class="cc-app">
+
+	<!-- TOP BAR -->
+	<div class="cc-topbar readable-background">
+		<a href="/" class="cc-topbar-brand">Card Conjurer</a>
+		<div class="cc-topbar-sep"></div>
+		<button class="input" onclick="saveCard();">Save Card</button>
+		<button class="input" onclick="ccActivateSection('import');">Load / Import</button>
+		<div class="cc-topbar-sep"></div>
+		<button class="input" onclick="downloadCard();">Download PNG</button>
+		<button class="input" onclick="downloadCard(false, true);">Download JPEG</button>
+	</div>
+
+	<!-- THREE-COLUMN MAIN -->
+	<div class="cc-main">
+
+		<!-- ====================================================
+		     LEFT SIDEBAR
+		     ==================================================== -->
+		<div class="cc-sidebar readable-background">
+
+			<!-- Frame layer list — always visible -->
+			<div class="cc-sidebar-layers">
+				<div class="cc-sidebar-layers-heading">Frame Layers</div>
+				<div id="frame-list" class="frame-list"></div>
+				<p class="cc-sidebar-layers-hint">Drag to reorder &middot; Click to edit</p>
+			</div>
+
+			<!-- Section navigation -->
+			<nav class="cc-sidebar-nav" aria-label="Editor sections">
+				<div class="cc-sidebar-nav-heading">Edit</div>
+				<div class="cc-nav-item cc-nav-active" data-section="frame"     onclick="ccActivateSection('frame')">Frame Pack</div>
+				<div class="cc-nav-item"               data-section="text"      onclick="ccActivateSection('text')">Text</div>
+				<div class="cc-nav-item"               data-section="art"       onclick="ccActivateSection('art')">Art</div>
+				<div class="cc-nav-item"               data-section="setSymbol" onclick="ccActivateSection('setSymbol')">Set Symbol</div>
+				<div class="cc-nav-item"               data-section="watermark" onclick="ccActivateSection('watermark')">Watermark</div>
+				<div class="cc-nav-item"               data-section="collector" onclick="ccActivateSection('collector')">Collector Info</div>
+				<div class="cc-sidebar-nav-heading">Options</div>
+				<div class="cc-nav-item"               data-section="autoframe" onclick="ccActivateSection('autoframe')">Auto Frame</div>
+				<div class="cc-nav-item"               data-section="import"    onclick="ccActivateSection('import')">Save / Load / Import</div>
+				<div class="cc-nav-item"               data-section="tutorial"  onclick="ccActivateSection('tutorial'); loadTutorialVideo();">Tutorial</div>
+			</nav>
+		</div>
+
+		<!-- ====================================================
+		     CENTER CANVAS
+		     ==================================================== -->
+		<div class="cc-canvas-area">
+			<canvas class="creator-canvas box-shadow" id="previewCanvas" width="1005" height="1407"></canvas>
+		</div>
+
+		<!-- ====================================================
+		     RIGHT PANEL
+		     Panel sections are shown/hidden by ccActivateSection().
+		     All input IDs are identical to the original creator.
+		     ==================================================== -->
+		<div class="cc-panel">
+
+			<!-- ================================================
+			     FRAME PACK SECTION (default active)
+			     ================================================ -->
+			<div class="cc-panel-section" data-section="frame">
+
+				<div class="readable-background margin-bottom padding">
+					<h5 class="margin-bottom padding input-description">
+						Select a Frame Group and a Frame Pack, or type to search. Then click Load Frame Version to configure text placement and art size.</h5>
+					<div class="input-grid margin-bottom">
+						<select id="selectFrameGroup" onchange='loadScript("/js/frames/group" + this.value + ".js")' class="input" aria-label="Select Frame Group">
+							<option disabled>Standard Frames</option>
+							<option value="Standard-3">Regular</option>
+							<option value="Token-2">Tokens</option>
+							<option value="Saga-1">Sagas</option>
+							<option value="Planeswalker">Planeswalkers</option>
+							<option value="Modal-1">Modal DFC's</option>
+							<option value="DFC">Transform</option>
+							<option disabled>Special Frames</option>
+							<option value="Showcase-5">Showcase Frames</option>
+							<option value="UniversesBeyond">Universes Beyond</option>
+							<option value="Promo-2">Promos (Tall Art)</option>
+							<option value="Textless-4">Textless/Fullart</option>
+							<option disabled>Other Frames</option>
+							<option value="Custom">Custom</option>
+							<option value="Misc-2">Old/Misc</option>
+							<option value="Accurate">Accurate Frames</option>
+							<option value="Margin">1/8th Inch Margin</option>
+							<option disabled>Other Games</option>
+							<option value="FleshAndBlood">Flesh and Blood</option>
+						</select>
+						<select id="selectFramePack" onchange='loadScript("/js/frames/pack" + this.value + ".js")' class="input" aria-label="Select Frame Pack"></select>
+						<div class="autocomplete">
+							<input id="frameSearch" onchange="frameSearch(this.value)" type="text" class="input" placeholder="Search Frames...">
+						</div>
+					</div>
+					<div class="input-grid margin-bottom">
+						<button id="loadFrameVersion" class="input">Load Frame Version</button>
+					</div>
+					<h5 class="input-description margin-bottom">Automatically load Frame Version when loading Frame Packs</h5>
+					<label class="checkbox-container input">Auto load
+						<input id="autoLoadFrameVersion" type="checkbox" onchange="autoLoadFrameVersion();" checked>
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+				<div class="readable-background margin-bottom padding">
+					<h5 class="margin-bottom padding input-description">Select a Frame Image and a Mask, then add it to your card</h5>
+					<div class="split-grid margin-bottom">
+						<div id="frame-picker" class="frame-picker"></div>
+						<div id="mask-picker"  class="mask-picker"></div>
+					</div>
+					<div class="input-grid margin-bottom">
+						<button id="addToFull"      class="input" onclick="addFrame()">Add Frame to Card</button>
+						<button id="addToRightHalf" class="input" onclick="addFrame([{src:'/img/frames/maskRightHalf.png', name:'Right Half'}])">Add Frame to Card (Right Half)</button>
+					</div>
+					<h5 class="collapsible collapsed padding input-description" onclick="toggleCollapse(event);">More options</h5>
+					<div>
+						<div class="input-grid margin-bottom">
+							<button id="addToLeftHalf"    class="input" onclick="addFrame([{src:'/img/frames/maskLeftHalf.png',    name:'Left Half'}])">Add Frame to Card (Left Half)</button>
+							<button id="addToMiddleThird" class="input" onclick="addFrame([{src:'/img/frames/maskMiddleThird.png', name:'Middle Third'}])">Add Frame to Card (Middle Third)</button>
+							<button id="addToTopHalf"     class="input" onclick="addFrame([{src:'/img/frames/maskTopHalf.png',    name:'Top Half'}])">Add Frame to Card (Top Half)</button>
+							<button id="addToBottomHalf"  class="input" onclick="addFrame([{src:'/img/frames/maskBottomHalf.png', name:'Bottom Half'}])">Add Frame to Card (Bottom Half)</button>
+						</div>
+						<h5 class="padding input-description">Double-click frames or masks to add them. Hold Shift (right half), Ctrl (left half), or Alt (middle third) while double-clicking.</h5>
+					</div>
+					<h5 id="selectedPreview" class="padding input-description">(Selected: White Frame, No Mask)</h5>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Upload custom frame images</h5>
+					<div class="input-grid">
+						<div class="padding drop-area">
+							<h5 class="margin-bottom padding input-description">Drag and drop</h5>
+							<input type="file" multiple accept=".png, .svg, .jpg, .jpeg, .bmp, .webp" class="input"
+								oninput="uploadFiles(event.target.files, uploadFrameOption);"
+								data-dropFunction="uploadFrameOption" data-otherParams="">
+						</div>
+						<div>
+							<input type="url" placeholder="Via URL" class="input" onchange="imageURL(this.value, uploadFrameOption);">
+						</div>
+					</div>
+				</div>
+
+				<div class="readable-background padding">
+					<h5 class="input-description margin-bottom">Rounded Corners (When Downloaded)</h5>
+					<label class="checkbox-container input margin-bottom">Rounded Corners
+						<input id="rounded-corners" checked type="checkbox" onchange="setRoundedCorners(this.checked);">
+						<span class="checkmark"></span>
+					</label>
+					<h5 class="input-description margin-bottom">Show guidelines for text, art, watermark, and set symbols</h5>
+					<label class="checkbox-container input margin-bottom">Guidelines
+						<input id="show-guidelines" type="checkbox" onchange="drawCard();">
+						<span class="checkmark"></span>
+					</label>
+					<h5 class="input-description margin-bottom">Highlight transparencies in card</h5>
+					<label class="checkbox-container input">Transparencies
+						<input id="highlight-transparencies" type="checkbox" onchange="toggleCardBackgroundColor(this.checked);">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+			</div><!-- /frame section -->
+
+			<!-- ================================================
+			     TEXT SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="text">
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Select a text area to edit</h5>
+					<div id="text-options" class="input-grid"></div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Enter card text</h5>
+					<textarea id="text-editor" class="input margin-bottom" oninput="textEdited();" aria-label="Card text editor"></textarea>
+					<div class="padding input-grid">
+						<button class="input" onclick="toggleTextTag('i');">Italic</button>
+						<button class="input" onclick="toggleTextTag('bold');">Bold</button>
+					</div>
+					<h5 class="margin-bottom padding input-description">Edit the placement and size of the selected textbox</h5>
+					<button class="input" onclick="textboxEditor();">Edit Bounds</button>
+					<h5 class="margin-bottom padding input-description">Adjust font size</h5>
+					<input id="text-editor-font-size" class="input" type="number" placeholder="0" value="0" step="1" oninput="fontSizedEdited();">
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="collapsible collapsed padding input-description" onclick="toggleCollapse(event);">
+						Text Code / Mana Symbol Code Reference
+					</h5>
+					<div class="padding">
+						<h5 class="margin-top">Text Codes:</h5>
+						<div class="text-codes margin-bottom padding">
+							<h5>Code</h5><h5>Result</h5>
+							<h5>{cardname}</h5><h5>Inserts the name of the card (or use a tilde: ~)</h5>
+							<h5>{-}</h5><h5>Inserts an em-dash</h5>
+							<h5>{i}</h5><h5>Italicizes text</h5>
+							<h5>{/i}</h5><h5>Removes italicization</h5>
+							<h5>{bold}</h5><h5>Bolds text</h5>
+							<h5>{/bold}</h5><h5>Removes bold</h5>
+							<h5>{lns}</h5><h5>Moves to the next line without an extra space</h5>
+							<h5>{divider}</h5><h5>Moves to the next line and draws the flavor text bar</h5>
+							<h5>{flavor}</h5><h5>Moves to the next line, draws the flavor text bar, and italicizes</h5>
+							<h5>{oldflavor}</h5><h5>Italicizes and adds line breaks</h5>
+							<h5>{fontsize#pt}</h5><h5>Changes the font size to #pt (absolute)</h5>
+							<h5>{fontsize#}</h5><h5>Changes the font size by # pixels (relative)</h5>
+							<h5>{fontcolor___}</h5><h5>Changes the font color (eg '{fontcolor#00FF00}')</h5>
+							<h5>{left} {center} {right}</h5><h5>Text alignment</h5>
+							<h5>{justify-left} {justify-center} {justify-right}</h5><h5>Justification</h5>
+							<h5>{permashift#,$}</h5><h5>Moves text # px right, $ px down</h5>
+							<h5>{up#} {down#} {left#} {right#}</h5><h5>Move text in pixels</h5>
+							<h5>{shadow#} {shadowcolor#}</h5><h5>Shadow distance / color</h5>
+							<h5>{outline#} {outlinecolor___}</h5><h5>Outline width / color</h5>
+							<h5>{bullet}</h5><h5>Bullet point •</h5>
+							<h5>{indent} {/indent}</h5><h5>Paragraph indentation</h5>
+							<h5>{kerning#}</h5><h5>Letter spacing</h5>
+							<h5>{roll___}</h5><h5>Dice-rolling cards (AFR style)</h5>
+							<h5>{ruby:base:annotation}</h5><h5>Furigana / pinyin annotations</h5>
+						</div>
+						<h5>Mana Symbol Codes:</h5>
+						<div class="text-codes padding">
+							<h5>Code</h5><h5>Result</h5>
+							<h5>{1}, {2}... {20}</h5><h5>Generic mana</h5>
+							<h5>{w}, {u}, {b}, {r}, {g}</h5><h5>Colored mana</h5>
+							<h5>{wu}, {wb}, {ub}... {2w}, {2u}...</h5><h5>Hybrid mana</h5>
+							<h5>{pw}, {pu}...</h5><h5>Phyrexian mana</h5>
+							<h5>{wup}, {wbp}...</h5><h5>Hybrid phyrexian mana</h5>
+							<h5>{t}, {untap}</h5><h5>Tap symbols</h5>
+							<h5>{x}, {y}, {z}</h5><h5>Variable mana</h5>
+							<h5>{c}</h5><h5>Colorless mana</h5>
+							<h5>{s}</h5><h5>Snow mana</h5>
+							<h5>{e}</h5><h5>Energy symbol</h5>
+							<h5>{+1}</h5><h5>+1 loyalty icon</h5>
+							<h5>{planeswalker}</h5><h5>Planeswalker icon</h5>
+							<h5>{chaos}</h5><h5>Chaos symbol (planechase)</h5>
+							<h5>{p}</h5><h5>Bloomburrow pawprint</h5>
+						</div>
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<label class="checkbox-container input">Hide reminder text
+						<input id="hide-reminder-text" type="checkbox" onchange="textEdited();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+				<div class="readable-background padding margin-bottom">
+					<label class="checkbox-container input">Auto-italicize reminder text
+						<input id="italicize-reminder-text" type="checkbox" onchange="textEdited();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+				<div class="readable-background padding">
+					<h5 class="padding input-description">Add a textbox to your card</h5>
+					<div class="padding input-grid">
+						<button class="input" onclick='addTextbox("Nickname");'>Nickname</button>
+						<button class="input" onclick='addTextbox("Power/Toughness");'>Power/Toughness</button>
+						<button class="input" onclick='addTextbox("DateStamp");'>Date Stamp</button>
+					</div>
+				</div>
+
+			</div><!-- /text section -->
+
+			<!-- ================================================
+			     ART SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="art">
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Choose/upload your art</h5>
+					<div class="input-grid margin-bottom">
+						<div class="padding drop-area">
+							<h5 class="margin-bottom padding input-description">Drag and drop</h5>
+							<input type="file" multiple accept=".png, .svg, .jpg, .jpeg, .bmp, .webp" class="input"
+								oninput="uploadFiles(event.target.files, uploadArt, document.querySelector('#art-update-autofit').checked ? 'autoFit' : '');"
+								data-dropFunction="uploadArt" data-otherParams="autoFit">
+						</div>
+						<div>
+							<input type="url" placeholder="Via URL" class="input" onchange="imageURL(this.value, uploadArt, document.querySelector('#art-update-autofit').checked ? 'autoFit' : '');">
+							<h5 class="input-description margin-bottom"></h5>
+							<label class="checkbox-container input">Autofit when setting art
+								<input id="art-update-autofit" type="checkbox" onchange="setAutofit();">
+								<span class="checkmark"></span>
+							</label>
+						</div>
+						<button class="input margin-bottom" onclick="pasteArt();">Paste from clipboard</button>
+					</div>
+					<h5 class="margin-bottom padding input-description">Or enter a card name</h5>
+					<input id="art-name" type="text" placeholder="Enter Card Name" class="input margin-bottom" onchange="fetchScryfallData(this.value, artFromScryfall, 'art');" aria-label="Enter Card Name">
+					<h5 class="padding margin-bottom input-description">Select a specific card art to load</h5>
+					<select class="input margin-bottom" id="art-index" onchange="changeArtIndex();" aria-label="Select specific card art"></select>
+					<h5 class="margin-bottom padding input-description">And credit the artist</h5>
+					<div class="input-grid">
+						<input id="art-artist" type="text" class="input" oninput="artistEdited(this.value);" placeholder="Artist">
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Position/scale your art (X, Y, Scale, Rotation)<br>Click and drag anywhere on the card to move art. Hold Shift to scale, Ctrl to rotate.</h5>
+					<div class="input-grid margin-bottom">
+						<input id="art-x"      type="number" class="input" oninput="artEdited();" value="0"   aria-label="Art X Position">
+						<input id="art-y"      type="number" class="input" oninput="artEdited();" value="0"   aria-label="Art Y Position">
+						<input id="art-zoom"   type="number" class="input" oninput="artEdited();" value="100" step="0.1" min="0" aria-label="Art Scale">
+						<input id="art-rotate" type="number" class="input" oninput="artEdited();" value="0"   step="1" min="0" max="360" aria-label="Art Rotation">
+					</div>
+					<div class="input-grid">
+						<button class="input" onclick="autoFitArt();">Auto Fit Art</button>
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="input-description margin-bottom">Make the art grayscale</h5>
+					<label class="checkbox-container input">Grayscale
+						<input id="grayscale-art" type="checkbox" onchange="drawCard();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="padding margin-bottom input-description">Clears the art, making it blank</h5>
+					<button class="input margin-bottom" onclick="uploadArt(blank.src);">Remove Art</button>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="input-description margin-bottom">Show guidelines for text, art, watermark, and set symbols</h5>
+					<label class="checkbox-container input">Guidelines
+						<!-- #show-guidelines-2 is bound to #show-guidelines by creator-23.js bindInputs() -->
+						<input id="show-guidelines-2" type="checkbox" onchange="drawCard();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+				<div class="readable-background padding">
+					<h5 class="input-description margin-bottom">Click and drag to move set symbol instead of art (hold shift to zoom)</h5>
+					<label class="checkbox-container input">Click and drag moves set symbol
+						<input id="drag-target-setSymbol" type="checkbox">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+			</div><!-- /art section -->
+
+			<!-- ================================================
+			     SET SYMBOL SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="setSymbol">
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Choose/upload your set symbol</h5>
+					<div class="input-grid margin-bottom">
+						<div class="padding drop-area">
+							<h5 class="margin-bottom padding input-description">Drag and drop</h5>
+							<input type="file" multiple accept=".png, .svg, .jpg, .jpeg, .bmp, .webp" class="input"
+								oninput="uploadFiles(event.target.files, uploadSetSymbol, 'resetSetSymbol');"
+								data-dropFunction="uploadSetSymbol" data-otherParams="resetSetSymbol">
+						</div>
+						<div>
+							<input type="url" placeholder="Via URL" class="input" onchange="imageURL(this.value, uploadSetSymbol, 'resetSetSymbol');">
+						</div>
+					</div>
+					<h5 class="margin-bottom padding input-description">Or enter a set code/rarity</h5>
+					<div class="input-grid margin-bottom">
+						<input id="set-symbol-code"   type="text" placeholder="Set Code" class="input" onchange="fetchSetSymbol();">
+						<input id="set-symbol-rarity" type="text" placeholder="Rarity"   class="input" onchange="fetchSetSymbol();">
+					</div>
+					<h5 class="margin-bottom padding input-description">Load set symbols from:</h5>
+					<div class="input-grid margin-bottom">
+						<select id="set-symbol-source" class="input" onchange="fetchSetSymbol();" aria-label="Set symbol source">
+							<option value="cardconjurer">CardConjurer</option>
+							<option value="gatherer">Gatherer</option>
+							<option value="hexproof">Hexproof.io</option>
+						</select>
+					</div>
+					<h5 class="collapsible collapsed padding input-description" onclick="toggleCollapse(event);">How to find set codes</h5>
+					<div class="padding">
+						<h5 class="margin-top">Set codes are the two-three character combinations representing sets. For sets released after 2015, the three-character code is in the lower left corner.</h5>
+						<p class="margin-top padding">Set symbols use <a class="underline" href="https://scryfall.com/sets" target="_blank" rel="noopener">Scryfall</a> codes. Watermarks use <a class="underline" href="https://keyrune.andrewgioia.com/icons.html" target="_blank" rel="noopener">Keyrune</a> codes.</p>
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Position/scale your Set Symbol (X, Y, Scale)</h5>
+					<div class="input-grid margin-bottom">
+						<input id="setSymbol-x"    type="number" class="input" oninput="setSymbolEdited();" value="0"   aria-label="Set Symbol X Position">
+						<input id="setSymbol-y"    type="number" class="input" oninput="setSymbolEdited();" value="0"   aria-label="Set Symbol Y Position">
+						<input id="setSymbol-zoom" type="number" class="input" oninput="setSymbolEdited();" value="100" step="0.1" min="0" aria-label="Set Symbol Scale">
+					</div>
+					<div class="input-grid">
+						<button class="input" onclick="resetSetSymbol();">Reset Set Symbol</button>
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="padding margin-bottom input-description">Clears the Set Symbol, making it blank</h5>
+					<button class="input margin-bottom" onclick="uploadSetSymbol(blank.src);">Remove Set Symbol</button>
+				</div>
+
+				<div class="readable-background padding">
+					<h5 class="input-description margin-bottom">Lock the set symbol code (saves between reloads)</h5>
+					<label class="checkbox-container input margin-bottom">Lock set symbol code
+						<input id="lockSetSymbolCode" type="checkbox" onchange="lockSetSymbolCode();">
+						<span class="checkmark"></span>
+					</label>
+					<h5 class="input-description margin-bottom">Lock the set symbol URL (saves between reloads)</h5>
+					<label class="checkbox-container input">Lock set symbol URL
+						<input id="lockSetSymbolURL" type="checkbox" onchange="lockSetSymbolURL();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+			</div><!-- /setSymbol section -->
+
+			<!-- ================================================
+			     WATERMARK SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="watermark">
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Choose/upload your watermark</h5>
+					<div class="input-grid">
+						<div class="padding drop-area">
+							<h5 class="margin-bottom padding input-description">Drag and drop</h5>
+							<input type="file" multiple accept=".png, .svg, .jpg, .jpeg, .bmp, .webp" class="input"
+								oninput="uploadFiles(event.target.files, uploadWatermark, 'resetWatermark');"
+								data-dropFunction="uploadWatermark" data-otherParams="resetWatermark">
+						</div>
+						<div>
+							<input type="url"  placeholder="Via URL"      class="input margin-bottom" onchange="imageURL(this.value, uploadWatermark, 'resetWatermark');">
+							<input type="text" placeholder="Via Set Code" class="input" onchange="getSetSymbolWatermark(this.value);">
+						</div>
+					</div>
+					<h5 class="margin-bottom padding input-description">Select lore-based watermarks</h5>
+					<select class="input padding margin-bottom" onchange="getSetSymbolWatermark(fixUri(this.value));" aria-label="Select lore-based watermarks">
+						<option disabled selected>None</option>
+						<option disabled>General</option>
+						<option value="/img/watermarks/planeswalker.svg">Planeswalker</option>
+						<option value="/img/watermarks/desparked-planeswalker.svg">Desparked Planeswalker</option>
+						<option value="/img/watermarks/misc-star.svg">DCI Star</option>
+						<option value="/img/watermarks/misc-dci.svg">DCI Logo</option>
+						<option disabled>Monocolors</option>
+						<option value="/img/watermarks/w.svg">White</option>
+						<option value="/img/watermarks/u.svg">Blue</option>
+						<option value="/img/watermarks/b.svg">Black</option>
+						<option value="/img/watermarks/r.svg">Red</option>
+						<option value="/img/watermarks/g.svg">Green</option>
+						<option value="/img/watermarks/c.svg">Colorless</option>
+						<option disabled>Mechanics</option>
+						<option value="/img/watermarks/ability-foretell.svg">Foretell</option>
+						<option disabled>Phyrexian/Mirrodin</option>
+						<option value="/img/watermarks/phyrexian.svg">Phyrexian</option>
+						<option value="/img/watermarks/mirran.svg">Mirran</option>
+						<option disabled>Guilds (Ravnica)</option>
+						<option value="/img/watermarks/guild-azorius.svg">Azorius</option>
+						<option value="/img/watermarks/guild-dimir.svg">Dimir</option>
+						<option value="/img/watermarks/guild-rakdos.svg">Rakdos</option>
+						<option value="/img/watermarks/guild-gruul.svg">Gruul</option>
+						<option value="/img/watermarks/guild-selesnya.svg">Selesnya</option>
+						<option value="/img/watermarks/guild-orzhov.svg">Orzhov</option>
+						<option value="/img/watermarks/guild-izzet.svg">Izzet</option>
+						<option value="/img/watermarks/guild-golgari.svg">Golgari</option>
+						<option value="/img/watermarks/guild-boros.svg">Boros</option>
+						<option value="/img/watermarks/guild-simic.svg">Simic</option>
+						<option disabled>Schools (Strixhaven)</option>
+						<option value="/img/watermarks/school-silverquill.svg">Silverquill</option>
+						<option value="/img/watermarks/school-prismari.svg">Prismari</option>
+						<option value="/img/watermarks/school-witherbloom.svg">Witherbloom</option>
+						<option value="/img/watermarks/school-lorehold.svg">Lorehold</option>
+						<option value="/img/watermarks/school-quandrix.svg">Quandrix</option>
+						<option disabled>Families (New Capenna)</option>
+						<option value="/img/watermarks/family-brokers.svg">Brokers</option>
+						<option value="/img/watermarks/family-obscura.svg">Obscura</option>
+						<option value="/img/watermarks/family-maestros.svg">Maestros</option>
+						<option value="/img/watermarks/family-riveteers.svg">Riveteers</option>
+						<option value="/img/watermarks/family-cabaretti.svg">Cabaretti</option>
+						<option disabled>Clans (Tarkir - Old Timeline)</option>
+						<option value="/img/watermarks/clan-abzan.svg">Abzan</option>
+						<option value="/img/watermarks/clan-jeskai.svg">Jeskai</option>
+						<option value="/img/watermarks/clan-sultai.svg">Sultai</option>
+						<option value="/img/watermarks/clan-mardu.svg">Mardu</option>
+						<option value="/img/watermarks/clan-temur.svg">Temur</option>
+						<option disabled>Clans (Tarkir - New Timeline)</option>
+						<option value="/img/watermarks/clan-ojutai.svg">Ojutai</option>
+						<option value="/img/watermarks/clan-silumgar.svg">Silumgar</option>
+						<option value="/img/watermarks/clan-kolaghan.svg">Kolaghan</option>
+						<option value="/img/watermarks/clan-atarka.svg">Atarka</option>
+						<option value="/img/watermarks/clan-dromoka.svg">Dromoka</option>
+						<option disabled>Poleis (Theros)</option>
+						<option value="/img/watermarks/polis-akros.svg">Akros</option>
+						<option value="/img/watermarks/polis-meletis.svg">Meletis</option>
+						<option value="/img/watermarks/polis-setessa.svg">Setessa</option>
+						<option disabled>Unstable Factions (Bablovia)</option>
+						<option value="/img/watermarks/faction-order-of-the-widget.svg">Order of the Widget</option>
+						<option value="/img/watermarks/faction-agents-of-sneak.svg">Agents of S.N.E.A.K.</option>
+						<option value="/img/watermarks/faction-league-of-dastardly-doom.svg">League of Dastardly Doom</option>
+						<option value="/img/watermarks/faction-goblin-explosioneers.svg">Goblin Explosioneers</option>
+						<option value="/img/watermarks/faction-crossbreed-labs.svg">Crossbreed Labs</option>
+						<option disabled>Avatar The Last Airbender (TLA)</option>
+						<option value="/img/watermarks/atla-water.svg">Water Tribe</option>
+						<option value="/img/watermarks/atla-earth.svg">Earth Kingdom</option>
+						<option value="/img/watermarks/atla-fire.svg">Fire Nation</option>
+						<option value="/img/watermarks/atla-air.svg">Air Nomads</option>
+						<option disabled>Custom</option>
+						<option value="/img/watermarks/purple.svg">Purple Mana</option>
+					</select>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Select watermark colors (left, right)</h5>
+					<div class="input-grid margin-bottom">
+						<select class="input" id="watermark-left" onchange="watermarkLeftColor(this.value);" aria-label="Watermark left color">
+							<option value="none">None</option>
+							<option value="default">Actual Image</option>
+							<option value="#b79d58" selected>White</option>
+							<option value="#8cacc5">Blue</option>
+							<option value="#5e5e5e">Black</option>
+							<option value="#c66d39">Red</option>
+							<option value="#598c52">Green</option>
+							<option value="#cab34d">Gold</option>
+							<option value="#647d86">Artifact/Colorless</option>
+							<option value="#5e5448">Land</option>
+							<option value="#ffffff">True White</option>
+							<option value="#000000">True Black</option>
+						</select>
+						<select class="input" id="watermark-right" onchange="watermarkRightColor(this.value);" aria-label="Watermark right color">
+							<option value="none" selected>None</option>
+							<option value="default">Actual Image</option>
+							<option value="#b79d58">White</option>
+							<option value="#8cacc5">Blue</option>
+							<option value="#5e5e5e">Black</option>
+							<option value="#c66d39">Red</option>
+							<option value="#598c52">Green</option>
+							<option value="#cab34d">Gold</option>
+							<option value="#647d86">Artifact/Colorless</option>
+							<option value="#5e5448">Land</option>
+							<option value="#ffffff">True White</option>
+							<option value="#000000">True Black</option>
+						</select>
+					</div>
+					<h5 class="margin-bottom padding input-description">Or choose colors manually (left, right)</h5>
+					<div class="input-grid margin-bottom">
+						<input class="input" type="color" value="#000000" onchange="watermarkLeftColor(this.value);">
+						<input class="input" type="color" value="#000000" onchange="watermarkRightColor(this.value);">
+					</div>
+					<h5 class="margin-bottom padding input-description">And enter an opacity</h5>
+					<div class="input-grid margin-bottom">
+						<input id="watermark-opacity" type="number" class="input" oninput="watermarkEdited();" value="40" step="1" min="0" max="100" aria-label="Watermark opacity">
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="margin-bottom padding input-description">Position/scale your watermark (X, Y, Scale)</h5>
+					<div class="input-grid margin-bottom">
+						<input id="watermark-x"    type="number" class="input" oninput="watermarkEdited();" value="0"   aria-label="Watermark X Position">
+						<input id="watermark-y"    type="number" class="input" oninput="watermarkEdited();" value="0"   aria-label="Watermark Y Position">
+						<input id="watermark-zoom" type="number" class="input" oninput="watermarkEdited();" value="100" step="0.1" min="0" aria-label="Watermark Scale">
+					</div>
+					<div class="input-grid">
+						<button class="input" onclick="resetWatermark();">Reset Watermark</button>
+					</div>
+				</div>
+
+				<div class="readable-background padding">
+					<h5 class="padding margin-bottom input-description">Clears the watermark, making it blank</h5>
+					<button class="input margin-bottom" onclick="uploadWatermark(blank.src);">Remove Watermark</button>
+				</div>
+
+			</div><!-- /watermark section -->
+
+			<!-- ================================================
+			     COLLECTOR INFO SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="collector">
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="padding margin-bottom input-description">Enter the card number, rarity, set code, language, and artist's name</h5>
+					<div class="padding input-grid">
+						<input id="info-number"   type="text"   class="input" oninput="bottomInfoEdited();" placeholder="Number"   value="">
+						<input id="info-rarity"   type="text"   class="input" oninput="bottomInfoEdited();" placeholder="Rarity"   value="P">
+						<input id="info-note"     type="text"   class="input" oninput="bottomInfoEdited();" placeholder="Note"     value="">
+					</div>
+					<div class="padding input-grid">
+						<input id="info-set"      type="text"   class="input" oninput="bottomInfoEdited();" placeholder="Set"      value="MTG">
+						<input id="info-language" type="text"   class="input" oninput="bottomInfoEdited();" placeholder="Language" value="EN">
+						<input id="info-artist"   type="text"   class="input" oninput="artistEdited(this.value);" placeholder="Artist">
+					</div>
+					<div class="padding input-grid">
+						<input id="info-year"     type="number" class="input" oninput="bottomInfoEdited();" placeholder="0" value="1993">
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="input-description margin-bottom">Enable importing collector information</h5>
+					<label class="checkbox-container input margin-bottom">Enable imports
+						<input id="enableImportCollectorInfo" type="checkbox" onchange="enableImportCollectorInfo();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="input-description margin-bottom">Collector info style</h5>
+					<label class="checkbox-container input margin-bottom">Use new (post-ONE) collector info style
+						<input id="enableNewCollectorStyle" type="checkbox" onchange="enableNewCollectorInfoStyle();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="input-description margin-bottom">Show collector info</h5>
+					<label class="checkbox-container input margin-bottom">Show collector info (uncheck to hide)
+						<input id="enableCollectorInfo" type="checkbox" onchange="enableCollectorInfo();">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="padding input-description">Serial Number (leave both blank to hide)</h5>
+					<div class="padding input-grid">
+						<input id="serial-number" type="number" class="input" oninput="serialInfoEdited();" placeholder="001" min="0" value="">
+						<input id="serial-total"  type="number" class="input" oninput="serialInfoEdited();" placeholder="500" min="0" value="">
+					</div>
+					<h5 class="padding input-description">Placement (X, Y, Scale)</h5>
+					<div class="padding input-grid">
+						<input id="serial-x"     type="number" class="input" oninput="serialInfoEdited();" min="0" value="172"  aria-label="Serial Number X Position">
+						<input id="serial-y"     type="number" class="input" oninput="serialInfoEdited();" min="0" value="1383" aria-label="Serial Number Y Position">
+						<input id="serial-scale" type="number" class="input" oninput="serialInfoEdited();" min="0" step="0.01" value="1" aria-label="Serial Number Scale">
+					</div>
+					<div class="padding input-grid">
+						<button class="input" onclick="resetSerial();">Reset Serial Number Placement</button>
+					</div>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="input-description padding margin-bottom">Toggle between star (foils) and dot (regular cards)</h5>
+					<div class="padding">
+						<button class="input padding" onclick="toggleStarDot();">Toggle Star/Dot</button>
+					</div>
+				</div>
+
+				<div class="readable-background padding">
+					<h5 class="input-description padding margin-bottom">Save current collector info as default</h5>
+					<div class="padding">
+						<button class="input padding" onclick="setDefaultCollector();">Save as Default</button>
+					</div>
+					<h5 class="input-description padding margin-bottom">Clear your saved default collector info</h5>
+					<div class="padding">
+						<button class="input padding" onclick="removeDefaultCollector();">Clear Saved Defaults</button>
+					</div>
+				</div>
+
+			</div><!-- /collector section -->
+
+			<!-- ================================================
+			     AUTO FRAME SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="autoframe">
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="input-description margin-bottom">Automatically update frame based on card type and color</h5>
+					<div class="padding input-grid">
+						<select id="autoFrame" class="input" onchange="setAutoFrame()" aria-label="Automatically update frame">
+							<option value="false">Disabled</option>
+							<option value="M15Regular-1">Regular</option>
+							<option value="M15BoxTopper">Extended Art</option>
+							<option value="M15ExtendedArtShort">Extended Art (Shorter Textbox)</option>
+							<option value="UB">Universes Beyond</option>
+							<option value="Etched">Etched</option>
+							<option value="Borderless">Borderless (Alt)</option>
+							<option value="BorderlessUB">Borderless (Alt) (Universes Beyond)</option>
+							<option value="Praetors">Phyrexian</option>
+							<option value="8th">Eighth Edition</option>
+							<option value="Seventh">Seventh Edition</option>
+							<option disabled>Showcase frames</option>
+							<option value="JapanShowcase">Japan Showcase</option>
+							<option value="Vault">Vault (BIG)</option>
+							<option disabled>Alternative Layouts</option>
+							<option value="Adventure">Adventure</option>
+							<option value="Omen">Omen</option>
+							<option value="Prepare">Prepare</option>
+							<option disabled>Redone frames</option>
+							<option value="M15RegularNew">Regular (Accurate)</option>
+							<option value="FullArtNew">Full art (Accurate)</option>
+							<option value="UBNew">Universes Beyond (Accurate)</option>
+							<option disabled>Custom frames</option>
+							<option value="Circuit">Circuit</option>
+							<option value="M15Eighth">M15-Eighth</option>
+							<option value="M15EighthUB">M15-Eighth Universes Beyond</option>
+						</select>
+					</div>
+					<div class="padding input-grid">
+						<label class="checkbox-container input">Use Nyx frame for all Enchantments (where applicable)
+							<input id="autoframe-always-nyx" type="checkbox" onchange="setAutoframeNyx(this.checked);">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+				</div>
+
+			</div><!-- /autoframe section -->
+
+			<!-- ================================================
+			     SAVE / LOAD / IMPORT SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="import">
+
+				<div class="readable-background margin-bottom padding">
+					<h5 class="padding margin-bottom input-description">Import a real card by name</h5>
+					<input id="import-name" class="input margin-bottom" type="text" onchange="importChanged();" placeholder="Enter Card Name">
+					<label class="checkbox-container input margin-bottom">Include all unique prints as options
+						<input id="importAllPrints" type="checkbox" onchange="importChanged();">
+						<span class="checkmark"></span>
+					</label>
+					<h5 class="padding margin-bottom input-description">Select a specific card to import</h5>
+					<select class="input margin-bottom" id="import-index" onchange="changeCardIndex();" aria-label="Select specific card to import"></select>
+					<h5 class="padding input-description">Select a language for card imports</h5>
+					<select class="input" id="import-language" onchange="importChanged();" aria-label="Select language for card imports">
+						<option value="en">English</option>
+						<option value="es">Spanish</option>
+						<option value="fr">French</option>
+						<option value="de">German</option>
+						<option value="it">Italian</option>
+						<option value="pt">Portuguese</option>
+						<option value="ja">Japanese</option>
+						<option value="ko">Korean</option>
+						<option value="ru">Russian</option>
+						<option value="zhs">Simplified Chinese</option>
+						<option value="zht">Traditional Chinese</option>
+						<option value="ph">Phyrexian</option>
+					</select>
+				</div>
+
+				<div class="readable-background margin-bottom padding">
+					<h5 class="padding margin-bottom input-description">Paste full text</h5>
+					<button class="input margin-bottom" onclick="pasteCardText();">Paste card</button>
+				</div>
+
+				<div class="readable-background margin-bottom padding">
+					<h5 class="padding margin-bottom input-description">Save your current card</h5>
+					<button class="input margin-bottom" onclick="saveCard();">Save Card</button>
+					<h5 class="padding margin-bottom input-description">Load a saved card</h5>
+					<select id="load-card-options" class="input margin-bottom" onchange="loadCard(this.value);" aria-label="Load a saved card"></select>
+					<h5 class="padding margin-bottom input-description">Delete selected card</h5>
+					<button class="input" onclick="deleteCard();">Delete Card</button>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="padding margin-bottom input-description">Download all saved cards as a file</h5>
+					<button class="input margin-bottom" onclick="downloadSavedCards();">Download Cards File</button>
+					<h5 class="padding margin-bottom input-description">Download all saved card images as a zip file (can take a long time)</h5>
+					<button class="input margin-bottom" onclick="bulkDownloadZip();">Download All Images</button>
+					<h5 class="padding margin-bottom input-description">Upload previously downloaded file of saved cards</h5>
+					<input type="file" accept=".cardconjurer,.txt" class="input margin-bottom" oninput="uploadSavedCards(event);" aria-label="Upload saved cards file">
+					<h5 class="padding margin-bottom input-description">Delete ALL saved cards</h5>
+					<button class="input margin-bottom" onclick="deleteSavedCards();">Delete All</button>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h3 class="download padding" onclick="downloadCard();">Download your card</h3>
+					<h5 onclick="downloadCard(false, true);" id="downloadJpg" class="padding download input-description">Click here to download as JPEG</h5>
+					<h5 onclick="downloadCard(true);"        id="downloadAlt" class="padding download input-description">Click here for an alternative download</h5>
+				</div>
+
+				<div class="readable-background padding margin-bottom">
+					<h5 class="collapsible collapsed padding input-description" onclick="toggleCollapse(event);">
+						How are my cards saved?
+					</h5>
+					<div class="padding">
+						<h5 class="margin-top">Cards are saved in your browser's localStorage (usually up to 5MB). Uploading images via URL instead of file upload saves significant space.</h5>
+					</div>
+				</div>
+
+			</div><!-- /import section -->
+
+			<!-- ================================================
+			     TUTORIAL SECTION
+			     ================================================ -->
+			<div class="cc-panel-section cc-section-hidden" data-section="tutorial">
+
+				<div class="padding readable-background margin-bottom">
+					<h5 class="padding input-description">Here is a tutorial that covers the basics of using Card Conjurer:</h5>
+				</div>
+				<div class="video">
+					<iframe width="560" height="315" frameborder="0"
+						allow="encrypted-media" allowfullscreen
+						title="Card Conjurer Tutorial Video"></iframe>
+				</div>
+
+			</div><!-- /tutorial section -->
+
+		</div><!-- /.cc-panel -->
+
+	</div><!-- /.cc-main -->
+
+</div><!-- /.cc-app -->
+
+<!-- ============================================================
+     SCRIPTS
+     All deferred so DOM is fully parsed before any script runs.
+     Load order matters: main-1.js → autoFrame.js → creator-23.js
+     → frameSearch.js → creator-v2.js
+     ============================================================ -->
+<script defer src="/js/main-1.js"></script>
+<script defer src="/js/autoFrame.js"></script>
+<script defer src="/js/creator-23.js"></script>
+<script defer src="/js/frameSearch.js"></script>
+<script defer src="/js/creator-v2.js"></script>
+
+</body>
+</html>

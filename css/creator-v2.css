@@ -1,0 +1,205 @@
+/* ================================================================
+   creator-v2.css — Phase A: Three-column editor shell
+   All new classes prefixed cc- to avoid collisions with style-9.css
+   Independent column scroll is deferred to Phase B (autocomplete
+   clipping issue — see docs/claude-layout-refactor/09-migration-plan.md)
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   App shell
+   ---------------------------------------------------------------- */
+.cc-app {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+/* ----------------------------------------------------------------
+   Top bar
+   ---------------------------------------------------------------- */
+.cc-topbar {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	padding: 0.4rem 0.75rem;
+}
+
+.cc-topbar-brand {
+	font-family: belerenbsc, Helvetica, sans-serif;
+	font-size: 1.4rem;
+	text-decoration: none;
+	color: inherit;
+	white-space: nowrap;
+	margin-right: 0.5rem;
+}
+
+.cc-topbar-sep {
+	width: 1px;
+	height: 1.4rem;
+	background: rgba(255, 255, 255, 0.2);
+	flex-shrink: 0;
+	margin: 0 0.15rem;
+}
+
+/* Override .input's width:100% inside the topbar */
+.cc-topbar .input {
+	width: auto;
+	padding: 0.2rem 0.6rem;
+	font-size: 1rem;
+}
+
+/* ----------------------------------------------------------------
+   Three-column main layout
+   ---------------------------------------------------------------- */
+.cc-main {
+	flex: 1;
+	display: grid;
+	align-items: start;   /* required: lets sticky canvas work */
+
+	/* Default (narrow): single column, vertical stack */
+	grid-template-columns: 1fr;
+	grid-template-areas:
+		'canvas'
+		'sidebar'
+		'panel';
+}
+
+/* Medium: sidebar left, canvas + panel stacked on right */
+@media (min-width: 700px) {
+	.cc-main {
+		grid-template-columns: 200px 1fr;
+		grid-template-areas:
+			'sidebar canvas'
+			'sidebar panel';
+	}
+}
+
+/* Desktop: three columns */
+@media (min-width: 1200px) {
+	.cc-main {
+		grid-template-columns: 220px minmax(300px, 680px) 1fr;
+		grid-template-areas: 'sidebar canvas panel';
+	}
+}
+
+/* ----------------------------------------------------------------
+   Left sidebar
+   ---------------------------------------------------------------- */
+.cc-sidebar {
+	grid-area: sidebar;
+	border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.cc-sidebar-layers {
+	padding: 0.6rem 0.75rem 0.5rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.cc-sidebar-layers-heading {
+	font-size: 0.8rem;
+	font-family: Montserrat-Medium, Helvetica, sans-serif;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--font-color-2);
+	margin-bottom: 0.4rem;
+}
+
+/* Contain the layer list so it doesn't push the whole sidebar too tall */
+.cc-sidebar-layers .frame-list {
+	max-height: 260px;
+	overflow-y: auto;
+}
+
+.cc-sidebar-layers-hint {
+	font-size: 0.85rem;
+	font-family: Montserrat-Medium, Helvetica, sans-serif;
+	color: var(--font-color-2);
+	font-style: italic;
+	padding: 0.3rem 0 0;
+}
+
+/* Section navigation */
+.cc-sidebar-nav {
+	padding: 0.4rem 0;
+}
+
+.cc-sidebar-nav-heading {
+	font-size: 0.8rem;
+	font-family: Montserrat-Medium, Helvetica, sans-serif;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--font-color-2);
+	padding: 0.5rem 0.75rem 0.2rem;
+}
+
+.cc-nav-item {
+	padding: 0.55rem 0.75rem;
+	cursor: pointer;
+	user-select: none;
+	font-family: Montserrat-Medium, Helvetica, sans-serif;
+	font-size: 1rem;
+	border-left: 3px solid transparent;
+	transition: background 0.12s, border-color 0.12s;
+}
+
+.cc-nav-item:hover {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.cc-nav-item.cc-nav-active {
+	border-left-color: var(--color-selected);
+	background: rgba(255, 255, 255, 0.06);
+	color: var(--color-selected);
+}
+
+/* ----------------------------------------------------------------
+   Center canvas area
+   ---------------------------------------------------------------- */
+.cc-canvas-area {
+	grid-area: canvas;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	padding: 1rem;
+}
+
+/* Sticky canvas on desktop three-column layout only */
+@media (min-width: 1200px) {
+	.cc-canvas-area .creator-canvas {
+		position: sticky;
+		top: 3rem; /* approximate topbar height */
+		align-self: start;
+	}
+}
+
+/* ----------------------------------------------------------------
+   Right panel
+   ---------------------------------------------------------------- */
+.cc-panel {
+	grid-area: panel;
+	padding: 0.5rem;
+	/* No overflow-y:auto here in Phase A — deferred to Phase B.
+	   Autocomplete dropdown (position:absolute) clips inside an
+	   overflow container. */
+}
+
+/* Panel section visibility */
+.cc-section-hidden {
+	display: none !important;
+}
+
+/* ----------------------------------------------------------------
+   Responsive: collapse topbar on very narrow screens
+   ---------------------------------------------------------------- */
+@media (max-width: 480px) {
+	.cc-topbar-brand {
+		font-size: 1.1rem;
+	}
+	.cc-topbar-sep {
+		display: none;
+	}
+}
