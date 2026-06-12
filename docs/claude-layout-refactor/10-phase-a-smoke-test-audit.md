@@ -234,7 +234,7 @@ Load `/creator-v2/` directly (not via HTMX). Have the browser console open.
 
 ### Test 9 — Breakpoints
 - [ ] 1920×1080: full three-column layout; canvas fits in viewport height
-- [ ] 1440×900: canvas ~720px tall max; no vertical cropping
+- [ ] 1440×900: three-column (≥1200px), max-height calc(900px−64px)=836px, no vertical cropping
 - [ ] 1366×768: canvas ~648px tall max; card fully visible
 - [ ] 1100×800: switches to two-column; canvas + panel stack vertically
 - [ ] 375×812 (mobile): single column; canvas full width, natural height
