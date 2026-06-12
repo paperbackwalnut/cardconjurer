@@ -1,5 +1,5 @@
 /* ================================================================
-   creator-v2.css — Phase A: Three-column editor shell
+   creator-v2.css — Phase A / A.1: Three-column editor shell
    All new classes prefixed cc- to avoid collisions with style-9.css
    Independent column scroll is deferred to Phase B (autocomplete
    clipping issue — see docs/claude-layout-refactor/09-migration-plan.md)
@@ -45,7 +45,7 @@
 	margin: 0 0.15rem;
 }
 
-/* Override .input's width:100% inside the topbar */
+/* Override .input's width:100% and font-size inside the topbar */
 .cc-topbar .input {
 	width: auto;
 	padding: 0.2rem 0.6rem;
@@ -78,10 +78,12 @@
 	}
 }
 
-/* Desktop: three columns */
+/* Desktop: three columns.
+   Canvas takes 1fr (flexible — gets extra space on wide screens).
+   Panel is capped at 480px so it stays a compact properties inspector. */
 @media (min-width: 1200px) {
 	.cc-main {
-		grid-template-columns: 220px minmax(300px, 680px) 1fr;
+		grid-template-columns: 220px 1fr minmax(280px, 480px);
 		grid-template-areas: 'sidebar canvas panel';
 	}
 }
@@ -108,10 +110,38 @@
 	margin-bottom: 0.4rem;
 }
 
-/* Contain the layer list so it doesn't push the whole sidebar too tall */
+/* Layer list: scrollable at modest height now rows are compact */
 .cc-sidebar-layers .frame-list {
-	max-height: 260px;
+	max-height: 320px;
 	overflow-y: auto;
+}
+
+/* ---- Compact layer rows ----------------------------------------
+   .frame-element is built by addFrame() in creator-23.js.
+   DOM structure: div.draggable.frame-element > img, img, h4, h4.frame-element-close
+   We override sizing only — drag/reorder/click behavior is unchanged.
+   ---------------------------------------------------------------- */
+.cc-sidebar-layers .frame-element {
+	grid-template-columns: 2rem 2rem 1fr 2rem;
+	grid-gap: 0.2rem;
+	padding: 0.2rem 0.3rem;
+}
+
+.cc-sidebar-layers .frame-element > img {
+	width: 2rem;
+	height: 2rem;
+}
+
+.cc-sidebar-layers .frame-element > h4 {
+	font-size: 0.85rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.cc-sidebar-layers .frame-element-close {
+	font-size: 1rem;
+	padding: 0.1rem 0;
 }
 
 .cc-sidebar-layers-hint {
@@ -177,7 +207,7 @@
 }
 
 /* ----------------------------------------------------------------
-   Right panel
+   Right panel — compact properties inspector
    ---------------------------------------------------------------- */
 .cc-panel {
 	grid-area: panel;
@@ -187,7 +217,54 @@
 	   overflow container. */
 }
 
-/* Panel section visibility */
+/* ---- Scoped input overrides -----------------------------------
+   style-9.css sets .input at font-size:1.25rem and .input-grid
+   at minmax(16rem, 1fr) — fine for the full-page old creator but
+   too large and too wide for a compact properties panel.
+   These overrides are scoped to .cc-panel to avoid any impact on
+   the old /creator/ page, the topbar, or the sidebar.
+   ---------------------------------------------------------------- */
+
+/* Inputs: tighter font and padding */
+.cc-panel .input {
+	font-size: 1rem;
+}
+
+/* Textarea: a bit shorter than the global default */
+.cc-panel textarea.input {
+	font-size: 1rem;
+	min-height: 5rem;
+}
+
+/* Input grids: 8rem minimum column so 3 columns fit in ~440px of panel */
+.cc-panel .input-grid {
+	grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+/* Headings inside the panel */
+.cc-panel h3 {
+	font-size: 1.3rem;
+}
+.cc-panel h4 {
+	font-size: 1.1rem;
+}
+.cc-panel h5 {
+	font-size: 0.95rem;
+}
+
+/* Frame/mask picker: replace fixed 20rem height with a max-height.
+   Eliminates the empty dark void before frames load.
+   style-9.css still supplies overflow-y:scroll and grid layout. */
+.cc-panel .frame-picker,
+.cc-panel .mask-picker {
+	height: auto;
+	min-height: 4rem;
+	max-height: 14rem;
+}
+
+/* ----------------------------------------------------------------
+   Panel section visibility
+   ---------------------------------------------------------------- */
 .cc-section-hidden {
 	display: none !important;
 }
